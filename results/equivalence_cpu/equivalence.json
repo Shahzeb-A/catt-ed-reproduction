@@ -1,0 +1,13 @@
+{
+  "sample_size": 60,
+  "seed": 0,
+  "batch_size": 16,
+  "max_chars": 592,
+  "identical": 60,
+  "differing_indices": [],
+  "seconds_upstream_loop": 530.6,
+  "seconds_cached": 22.1,
+  "upstream_sha": "8d5330499feb85f6625e6af632141ed2ed6065fd",
+  "torch": "2.14.1",
+  "threads": 4
+}

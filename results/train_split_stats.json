@@ -1,0 +1,10 @@
+{
+  "train_raw_lines": 1739487,
+  "train_lines_after_clean_and_length_filter": 1492372,
+  "train_lines_after_ratio_filter_approx": 1069318,
+  "train_positions_after_length_filter": 239644371,
+  "train_positions_after_ratio_filter_approx": 201304414,
+  "train_words_after_length_filter": 47057596,
+  "note": "positions = letters + spaces + BOS/EOS, i.e. decoder steps per epoch; the ratio filter is approximated with a regex",
+  "seconds": 141.7
+}

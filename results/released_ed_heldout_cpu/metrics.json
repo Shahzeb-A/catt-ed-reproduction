@@ -1,0 +1,112 @@
+{
+  "run_name": "released_ed_heldout_cpu",
+  "lines": 2324,
+  "words": 76811,
+  "chars": 379045,
+  "upstream_compute_der": {
+    "with_case_ending": {
+      "der_pct": 0.505,
+      "wer_pct": 1.889,
+      "mismatch_samples": 0
+    },
+    "without_case_ending": {
+      "der_pct": 0.309,
+      "wer_pct": 1.117,
+      "mismatch_samples": 0
+    }
+  },
+  "independent": {
+    "lines": 2324,
+    "scored_lines": 2324,
+    "altered_lines": 0,
+    "altered_line_indices": [],
+    "stray_marks_ref": 0,
+    "stray_marks_hyp": 0,
+    "multi_vowel_units_ref": 0,
+    "metrics_pct": {
+      "der_ce": 0.637,
+      "der_ce_gold_marked_only": 0.7084,
+      "der_noce": 0.5023,
+      "upstream_conv_der_ce": 0.5056,
+      "upstream_conv_der_ce_editdistance": 0.5051,
+      "upstream_conv_der_noce": 0.3088,
+      "upstream_conv_der_noce_editdistance": 0.3086,
+      "upstream_conv_wer_ce": 1.8891,
+      "upstream_conv_wer_noce": 1.117,
+      "wer_ce": 1.8891,
+      "wer_noce": 1.0689
+    },
+    "counts": {
+      "der_ce": {
+        "errors": 1940,
+        "total": 304558
+      },
+      "der_ce_gold_marked_only": {
+        "errors": 1779,
+        "total": 251144
+      },
+      "der_noce": {
+        "errors": 1144,
+        "total": 227747
+      },
+      "upstream_conv_der_ce": {
+        "errors": 1940,
+        "total": 383693
+      },
+      "upstream_conv_der_ce_editdistance": {
+        "errors": 1938,
+        "total": 383693
+      },
+      "upstream_conv_der_noce": {
+        "errors": 1185,
+        "total": 383693
+      },
+      "upstream_conv_der_noce_editdistance": {
+        "errors": 1184,
+        "total": 383693
+      },
+      "upstream_conv_wer_ce": {
+        "errors": 1451,
+        "total": 76811
+      },
+      "upstream_conv_wer_noce": {
+        "errors": 858,
+        "total": 76811
+      },
+      "wer_ce": {
+        "errors": 1451,
+        "total": 76811
+      },
+      "wer_noce": {
+        "errors": 821,
+        "total": 76811
+      }
+    }
+  },
+  "throughput": {
+    "wall_seconds": 541.51,
+    "words_per_second": 141.8,
+    "lines_per_second": 4.29,
+    "chars_per_second": 700.0,
+    "peak_rss_mb": 1395.2,
+    "timed": "decode only (encode+decode+detokenise), after a 2-line warmup; model load, scoring and I/O excluded"
+  },
+  "sha256": {
+    "checkpoint": "c6297ec54f9af518a59d4b9e5831d3ad4da304435b8c7fb969f6e3a16816ac23",
+    "split_file": "4e851ff836f0a178abb15d9f4a8bcf92748b77cc0d67030d9fae2fbe698baa12",
+    "dataset_zip": "fa332ca9d3118ed8bc974debc681ba3f9d5ebca3cb824073b24bef0314e5fb00",
+    "predictions_input": "1f97d351cd91d21ab3b40079b8d453424bfc15398a0e0d4b1036e8a50a1378cc",
+    "predictions_ref": "634f53611fb4e06c523f846eceae9c54bb0637385322ff63151c52ef51a98a53",
+    "predictions_hyp": "5484c2072ef89caa682d15cdc4cf7fbc0eb24d3cf7a5416578f126c43b9bfe61"
+  },
+  "env": {
+    "python": "3.12.13",
+    "torch": "2.14.1",
+    "threads": 4,
+    "machine": "arm64",
+    "cpu": "Apple M3",
+    "os": "macOS-26.6.2-arm64-arm-64bit",
+    "upstream_sha": "8d5330499feb85f6625e6af632141ed2ed6065fd",
+    "params": 22090258
+  }
+}

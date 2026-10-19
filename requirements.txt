@@ -1,0 +1,9 @@
+# versions this repo's committed results were produced with (Python 3.12.13, macOS arm64)
+torch==2.14.1
+pytorch_lightning==2.6.6
+kaldialign==0.12.0
+pyyaml==6.0.3
+tqdm==4.70.1
+numpy==2.5.4
+pytest==9.1.1
+hypothesis==6.169.0

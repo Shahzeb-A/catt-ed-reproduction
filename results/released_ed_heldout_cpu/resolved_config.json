@@ -1,0 +1,16 @@
+{
+  "run_name": "released_ed_heldout_cpu",
+  "checkpoint": "data/release/best_ed_mlm_ns_epoch_178.pt",
+  "checkpoint_sha256": "c6297ec54f9af518a59d4b9e5831d3ad4da304435b8c7fb969f6e3a16816ac23",
+  "dataset_zip_sha256": "fa332ca9d3118ed8bc974debc681ba3f9d5ebca3cb824073b24bef0314e5fb00",
+  "split_file": "data/ds/dataset/test/test.txt",
+  "max_seq_len": 1024,
+  "threshold": 0.6,
+  "device": "cpu",
+  "threads": 4,
+  "batch_size": 16,
+  "sort_by_length": true,
+  "decoder": "cached",
+  "limit": 0,
+  "config_path": "configs/eval_released_cpu.yaml"
+}

@@ -1,0 +1,15 @@
+# environment
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.hypothesis/
+
+# upstream code is cloned at a pinned SHA by scripts/setup.sh, not vendored here
+vendor/catt/
+
+# downloaded weights, dataset, checkpoints, raw predictions (sha256 recorded in results)
+data/
+*.pt
+*.zip
+predictions/
