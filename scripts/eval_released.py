@@ -28,8 +28,9 @@ import yaml  # noqa: E402
 import catt_upstream as cu  # noqa: E402
 from cached_decode import tashkeel_batch_cached  # noqa: E402
 from heldout import load_heldout  # noqa: E402
-from metrics import base_letters, score_corpus  # noqa: E402
+from metrics import ALTERED_HEADER, altered_row, base_letters, score_corpus  # noqa: E402
 
+UPSTREAM_FILES = ("compute_der.py", "xer.py", "tashkeel_tokenizer.py", "bw2ar.py", "ed_pl.py", "ed.py", "transformer.py")
 UPSTREAM_LINE = re.compile(r"Total (DER|WER): %([0-9.]+)|Total mismatch samples: (\d+)")
 
 
@@ -50,6 +51,41 @@ def run_upstream_compute_der(ref: Path, hyp: Path, case_ending: bool) -> dict:
     return out
 
 
+def write_altered(res_dir: Path, pred_dir: Path, idx, line_nos, inputs, hyps) -> None:
+    """Committed list without dataset text; the text version goes to predictions/ (not committed)."""
+    with open(res_dir / "altered_lines.tsv", "w", encoding="utf-8") as f, \
+            open(pred_dir / "altered_lines_text.tsv", "w", encoding="utf-8") as g:
+        f.write(ALTERED_HEADER)
+        g.write("index\tinput_base_letters\toutput_base_letters\n")
+        for i in idx:
+            f.write(altered_row(i, line_nos[i], inputs[i], hyps[i]))
+            g.write(f"{i}\t{base_letters(inputs[i])}\t{base_letters(hyps[i])}\n")
+
+
+def cpu_name() -> str:
+    if sys.platform == "darwin":
+        return subprocess.run(["sysctl", "-n", "machdep.cpu.brand_string"], capture_output=True, text=True).stdout.strip()
+    try:
+        for line in open("/proc/cpuinfo"):
+            if line.startswith("model name"):
+                return line.split(":", 1)[1].strip()
+    except OSError:
+        pass
+    return platform.processor()
+
+
+def gpu_info(torch) -> dict:
+    driver = subprocess.run(["nvidia-smi", "--query-gpu=driver_version", "--format=csv,noheader"],
+                            capture_output=True, text=True).stdout.strip()
+    return {
+        "gpu": torch.cuda.get_device_name(0),
+        "cuda": torch.version.cuda,
+        "cudnn": torch.backends.cudnn.version(),
+        "nvidia_driver": driver,
+        "gpu_peak_allocated_mb": round(torch.cuda.max_memory_allocated() / (1 << 20), 1),
+    }
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", required=True)
@@ -57,6 +93,8 @@ def main() -> None:
     args = ap.parse_args()
 
     cfg = yaml.safe_load(open(args.config))
+    if args.limit:  # smoke runs never overwrite a full run's results
+        cfg["run_name"] = f"{cfg['run_name']}_limit{args.limit}"
     import torch
 
     torch.set_num_threads(int(cfg["threads"]))
@@ -69,6 +107,8 @@ def main() -> None:
     }
     if sha["checkpoint"] != cfg["checkpoint_sha256"]:
         raise SystemExit(f"checkpoint sha256 {sha['checkpoint']} != pinned {cfg['checkpoint_sha256']}")
+    if sha["split_file"] != cfg["split_file_sha256"]:
+        raise SystemExit(f"split file sha256 {sha['split_file']} != pinned {cfg['split_file_sha256']}")
     zip_path = Path(cfg["checkpoint"]).parent / "dataset.zip"
     if zip_path.exists():
         sha["dataset_zip"] = cu.sha256_file(zip_path)
@@ -88,6 +128,10 @@ def main() -> None:
     # warm up kernels on two short lines (not timed, not scored)
     tashkeel_batch_cached(model, sorted(inputs, key=len)[:2], 2)
 
+    cuda = str(cfg["device"]).startswith("cuda")
+    if cuda:
+        torch.cuda.synchronize()
+        torch.cuda.reset_peak_memory_stats()
     t0 = time.perf_counter()
     if cfg["decoder"] == "cached":
         batch_out = tashkeel_batch_cached(model, batch_in, cfg["batch_size"])
@@ -95,6 +139,8 @@ def main() -> None:
         batch_out = model.do_tashkeel_batch(batch_in, cfg["batch_size"], False)
     else:
         raise SystemExit(f"unknown decoder {cfg['decoder']}")
+    if cuda:
+        torch.cuda.synchronize()
     wall = time.perf_counter() - t0
     hyps = [None] * len(inputs)
     for pos, i in enumerate(order):
@@ -142,20 +188,18 @@ def main() -> None:
             "torch": torch.__version__,
             "threads": torch.get_num_threads(),
             "machine": platform.machine(),
-            "cpu": subprocess.run(["sysctl", "-n", "machdep.cpu.brand_string"], capture_output=True, text=True).stdout.strip()
-            if sys.platform == "darwin" else platform.processor(),
+            "cpu": cpu_name(),
             "os": platform.platform(),
             "upstream_sha": cu.upstream_sha(),
+            "upstream_files_sha256": {n: cu.sha256_file(cu.VENDOR / n) for n in UPSTREAM_FILES},
             "params": cu.n_params(model),
+            **(gpu_info(torch) if cuda else {}),
         },
     }
     resolved = dict(cfg, limit=args.limit, config_path=str(args.config))
     (res_dir / "resolved_config.json").write_text(json.dumps(resolved, indent=2, ensure_ascii=False) + "\n")
     (res_dir / "metrics.json").write_text(json.dumps(metrics, indent=2, ensure_ascii=False) + "\n")
-    with open(res_dir / "altered_lines.tsv", "w", encoding="utf-8") as f:
-        f.write("index\tline_no_in_split_file\tinput_base_letters\thyp_base_letters\n")
-        for i in indep["altered_line_indices"]:
-            f.write(f"{i}\t{lines[i].line_no}\t{base_letters(inputs[i])}\t{base_letters(hyps[i])}\n")
+    write_altered(res_dir, pred_dir, indep["altered_line_indices"], [l.line_no for l in lines], inputs, hyps)
 
     u = upstream["with_case_ending"]
     print(json.dumps({

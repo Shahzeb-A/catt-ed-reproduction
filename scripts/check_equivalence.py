@@ -1,8 +1,8 @@
 """Cached decoder vs the upstream decoding loop, line by line.
 
-    python scripts/check_equivalence.py --n 64 --seed 0
+    python scripts/check_equivalence.py --n 60 --seed 0
 
-Draws a length-stratified sample of the held-out split (equal draws from each length decile),
+Draws a length stratified sample of the held-out split (equal draws from each length decile),
 decodes it with upstream ed_pl.TashkeelModel.do_tashkeel_batch and with
 cached_decode.tashkeel_batch_cached using identical batches, and writes
 results/equivalence_cpu/equivalence.json with the count of byte-identical outputs.
@@ -29,11 +29,13 @@ SPLIT = REPO / "data/ds/dataset/test/test.txt"
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--n", type=int, default=64)
+    ap.add_argument("--n", type=int, default=60, help="a multiple of 10, equal draws per length decile")
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--batch-size", type=int, default=16)
     ap.add_argument("--threads", type=int, default=4)
     args = ap.parse_args()
+    if args.n % 10:
+        raise SystemExit("--n must be a multiple of 10 (equal draws per length decile)")
     import torch
 
     torch.set_num_threads(args.threads)

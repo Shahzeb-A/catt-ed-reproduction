@@ -18,11 +18,12 @@ of the positional numbers; they are listed, never averaged away.
 """
 from __future__ import annotations
 
+import hashlib
 from dataclasses import dataclass, field
 from typing import Dict, List, Sequence, Tuple
 
 MARKS = frozenset(chr(c) for c in range(0x064B, 0x0653))
-SHADDA = "ّ"
+SHADDA = "\u0651"
 
 Unit = Tuple[str, frozenset]
 
@@ -190,3 +191,15 @@ def _edit_distance(a: str, b: str) -> int:
     from kaldialign import edit_distance
 
     return int(edit_distance(a, b)["total"])
+
+
+ALTERED_HEADER = "index\tline_no_in_split_file\tfirst_diff_char\tinput_len\toutput_len\tinput_sha1\n"
+
+
+def altered_row(index: int, line_no: int, model_input: str, hyp: str) -> str:
+    """One altered_lines.tsv row with no dataset text in it: where the base letters first differ and
+    a hash of the input, so the line can be found in the split without committing the text."""
+    a, b = base_letters(model_input), base_letters(hyp)
+    k = next((p for p, (x, y) in enumerate(zip(a, b)) if x != y), min(len(a), len(b)))
+    sha = hashlib.sha1(model_input.encode("utf-8")).hexdigest()[:12]
+    return f"{index}\t{line_no}\t{k}\t{len(a)}\t{len(b)}\t{sha}\n"

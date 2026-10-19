@@ -18,8 +18,8 @@ sys.path.insert(0, str(REPO / "src"))
 sys.path.insert(0, str(REPO / "scripts"))
 
 import catt_upstream as cu  # noqa: E402
-from eval_released import run_upstream_compute_der  # noqa: E402
-from metrics import base_letters, score_corpus  # noqa: E402
+from eval_released import run_upstream_compute_der, write_altered  # noqa: E402
+from metrics import score_corpus  # noqa: E402
 
 
 def main() -> None:
@@ -45,10 +45,7 @@ def main() -> None:
     from heldout import load_heldout
 
     lines = load_heldout(REPO / cfg["split_file"], cu.make_tokenizer(), cfg["max_seq_len"], cfg["threshold"])
-    with open(res / "altered_lines.tsv", "w", encoding="utf-8") as f:
-        f.write("index\tline_no_in_split_file\tinput_base_letters\thyp_base_letters\n")
-        for i in m["independent"]["altered_line_indices"]:
-            f.write(f"{i}\t{lines[i].line_no}\t{base_letters(rows['input'][i])}\t{base_letters(rows['hyp'][i])}\n")
+    write_altered(res, pred, m["independent"]["altered_line_indices"], [l.line_no for l in lines], rows["input"], rows["hyp"])
     print(json.dumps({"upstream_compute_der": m["upstream_compute_der"], "independent": m["independent"]["metrics_pct"],
                       "altered_lines": m["independent"]["altered_lines"]}, indent=1))
 

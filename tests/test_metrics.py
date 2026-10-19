@@ -5,8 +5,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from metrics import base_letters, score_corpus, strip_marks, units  # noqa: E402
 
-FATHA, DAMMA, KASRA, SHADDA, SUKUN = "َ", "ُ", "ِ", "ّ", "ْ"
-B, T, K = "ب", "ت", "ك"
+FATHA, DAMMA, KASRA, SHADDA, SUKUN = "\u064e", "\u064f", "\u0650", "\u0651", "\u0652"
+B, T, K = "\u0628", "\u062a", "\u0643"
 
 
 def test_mark_order_inside_a_unit_is_ignored():
@@ -63,8 +63,16 @@ def test_altered_against_input_even_if_gold_matches():
 
 
 def test_unmarked_gold_letter_counted_in_main_der_only():
-    ref = K + FATHA + "ا"  # alef with no mark
-    hyp = K + FATHA + "ا" + SUKUN  # model adds a mark on alef
+    ref = K + FATHA + "\u0627"  # alef with no mark
+    hyp = K + FATHA + "\u0627" + SUKUN  # model adds a mark on alef
     c = score_corpus([ref], [hyp]).as_dict()["counts"]
     assert c["der_ce"] == {"errors": 1, "total": 2}
     assert c["der_ce_gold_marked_only"] == {"errors": 0, "total": 1}
+
+
+def test_altered_row_carries_no_text():
+    from metrics import altered_row
+
+    row = altered_row(3, 17, K + T + B, K + FATHA + B + T).rstrip("\n").split("\t")
+    assert row[:5] == ["3", "17", "1", "3", "3"]  # first differing base letter at position 1
+    assert K not in "".join(row) and T not in "".join(row)
